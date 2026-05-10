@@ -51,12 +51,20 @@ export default function About() {
               }}>
                 {t.about.cta_work}
               </a>
-              <a className="about__btn about__btn--secondary" href="/cv-emerson-alvarado.pdf" target="_blank" rel="noopener noreferrer">
-                {t.about.cta_cv}
-                <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
-                  <path d="M7 1v8M3 6l4 4 4-4M2 12h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
-                </svg>
-              </a>
+              <div className="about__cv-options" aria-label={t.about.cta_cv}>
+                <a className="about__btn about__btn--secondary" href="/Emerson_Alvarado_CV.pdf" download>
+                  {t.about.cta_cv_es}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M7 1v8M3 6l4 4 4-4M2 12h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+                <a className="about__btn about__btn--secondary" href="/Emerson_Alvarado_CV_Italiano.pdf" download>
+                  {t.about.cta_cv_it}
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+                    <path d="M7 1v8M3 6l4 4 4-4M2 12h10" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </a>
+              </div>
             </div>
           </div>
         </div>
