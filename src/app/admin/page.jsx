@@ -301,22 +301,26 @@ function ProjectsSection({ projects, setProjects }) {
   const [editingId, setEditingId] = useState(null)
   const [formInitial, setFormInitial] = useState(EMPTY_PROJECT_FORM)
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState(null)
   const [deletingId, setDeletingId] = useState(null)
 
   const openNew = () => {
     setEditingId(null)
     setFormInitial(EMPTY_PROJECT_FORM)
+    setError(null)
     setShowForm(true)
   }
 
   const openEdit = (project) => {
     setEditingId(project.id)
     setFormInitial({ ...project, tags: project.tags.join(', '), github: project.github ?? '', live: project.live ?? '' })
+    setError(null)
     setShowForm(true)
   }
 
   const handleSave = async (form) => {
     setSaving(true)
+    setError(null)
     const payload = {
       title: form.title.trim(),
       description: form.description.trim(),
@@ -330,26 +334,23 @@ function ProjectsSection({ projects, setProjects }) {
       sort_order: Number(form.sort_order) || 0,
     }
 
+    const res = await fetch('/api/projects', {
+      method: editingId ? 'PUT' : 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(editingId ? { id: editingId, ...payload } : payload),
+    })
+    const data = await res.json().catch(() => null)
+
+    if (!res.ok) {
+      setSaving(false)
+      setError(data?.error || 'No se pudo guardar el proyecto. Revisa los logs de producción.')
+      return
+    }
+
     if (editingId) {
-      const res = await fetch('/api/projects', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ id: editingId, ...payload }),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setProjects((prev) => prev.map((p) => (p.id === editingId ? data : p)))
-      }
+      setProjects((prev) => prev.map((p) => (p.id === editingId ? data : p)))
     } else {
-      const res = await fetch('/api/projects', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (res.ok) {
-        const data = await res.json()
-        setProjects((prev) => [...prev, data].sort((a, b) => a.sort_order - b.sort_order))
-      }
+      setProjects((prev) => [...prev, data].sort((a, b) => a.sort_order - b.sort_order))
     }
 
     setSaving(false)
@@ -360,12 +361,15 @@ function ProjectsSection({ projects, setProjects }) {
   const handleDelete = async (id) => {
     if (!confirm('¿Eliminar este proyecto?')) return
     setDeletingId(id)
+    setError(null)
     const res = await fetch('/api/projects', {
       method: 'DELETE',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id }),
     })
+    const data = await res.json().catch(() => null)
     if (res.ok) setProjects((prev) => prev.filter((p) => p.id !== id))
+    else setError(data?.error || 'No se pudo eliminar el proyecto. Revisa los logs de producción.')
     setDeletingId(null)
   }
 
@@ -387,6 +391,8 @@ function ProjectsSection({ projects, setProjects }) {
           saving={saving}
         />
       )}
+
+      {error && <p className="admin-error">{error}</p>}
 
       {projects.length === 0 && !showForm ? (
         <div className="admin-empty">No hay proyectos. ¡Agrega el primero!</div>
